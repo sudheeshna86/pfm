@@ -1,41 +1,45 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Home, 
-  CreditCard, 
-  TrendingUp, 
-  Target, 
-  BarChart3, 
-  Settings,
-  Moon,
-  Sun
+  Home, CreditCard, TrendingUp, Target, BarChart3, Settings,
+  Moon, Sun
 } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
-import { logout } from "../contexts/AuthContext.jsx";
-import { useNavigate } from "react-router-dom";
+import { useTheme } from '../contexts/ThemeContext.jsx';
+import { useAuth } from '../contexts/AuthContext.jsx';
+import { useNavigate, useLocation } from "react-router-dom";
 
 const tabs = [
-  { id: 'dashboard', label: 'Dashboard', icon: Home },
-  { id: 'transactions', label: 'Transactions', icon: CreditCard },
-  { id: 'budgets', label: 'Budgets', icon: TrendingUp },
-  { id: 'goals', label: 'Goals', icon: Target },
-  { id: 'reports', label: 'Reports', icon: BarChart3 },
-  { id: 'settings', label: 'Settings', icon: Settings },
+  { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/dashboard' },
+  { id: 'transactions', label: 'Transactions', icon: CreditCard, path: '/transactions' },
+  { id: 'budgets', label: 'Budgets', icon: TrendingUp, path: '/budgets' },
+  { id: 'goals', label: 'Goals', icon: Target, path: '/goals' },
+  { id: 'reports', label: 'Reports', icon: BarChart3, path: '/reports' },
+  { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' },
 ];
 
-export function Navigation({ activeTab, setActiveTab }) {
+export function Navigation() {
   const { theme, toggleTheme } = useTheme();
+  const { logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Keep track of active tab based on current URL
+  const [activeTab, setActiveTab] = useState(location.pathname);
+
+  // Update active tab when URL changes
+  useEffect(() => {
+    setActiveTab(location.pathname);
+  }, [location.pathname]);
 
   const handleLogout = () => {
-    logout();               // Clear user from localStorage
-    navigate("/login");     // Redirect to login page
+    logout();
+    navigate("/login");
   };
 
   return (
     <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          
+
           {/* Logo + Tabs */}
           <div className="flex items-center space-x-8">
             <div className="flex items-center">
@@ -53,9 +57,9 @@ export function Navigation({ activeTab, setActiveTab }) {
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
+                    onClick={() => { navigate(tab.path); }}
                     className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      activeTab === tab.id
+                      activeTab === tab.path
                         ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                     }`}
@@ -68,7 +72,7 @@ export function Navigation({ activeTab, setActiveTab }) {
             </nav>
           </div>
 
-          {/* Right side: Theme toggle + Logout */}
+          {/* Theme + Logout */}
           <div className="flex items-center space-x-2">
             <button
               onClick={toggleTheme}
@@ -90,8 +94,8 @@ export function Navigation({ activeTab, setActiveTab }) {
           </div>
         </div>
       </div>
-      
-      {/* Mobile Navigation */}
+
+      {/* Mobile nav */}
       <div className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
         <div className="flex justify-around py-2">
           {tabs.slice(0, 5).map((tab) => {
@@ -99,9 +103,9 @@ export function Navigation({ activeTab, setActiveTab }) {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => navigate(tab.path)}
                 className={`flex flex-col items-center px-3 py-2 text-xs ${
-                  activeTab === tab.id
+                  activeTab === tab.path
                     ? 'text-blue-600 dark:text-blue-400'
                     : 'text-gray-500 dark:text-gray-400'
                 }`}

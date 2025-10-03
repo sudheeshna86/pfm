@@ -1,37 +1,37 @@
 import React, { useState } from "react";
 import { useTheme } from "../contexts/ThemeContext.jsx";
-import axios from "axios"//
-import { Link,useNavigate } from "react-router-dom";
-import {login} from "../contexts/AuthContext.jsx";
+import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext.jsx"; // ✅ useAuth hook
 
-export function Login({ onLogin }) {
+export function Login() {
   const { theme } = useTheme();
+  const { login } = useAuth(); // ✅ get login function from context
   const [form, setForm] = useState({ email: "", password: "", role: "user" });
-  
+  const navigate = useNavigate();
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    
   };
-  const navigate=useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try{
-        const res=await axios.post("http://localhost:5000/Auth/login",form) 
-        console.log(res)
-        if(res.data.message=="Login successfully"){
-           login(res.data.user)
-           if(res.data.user.role=="user"){
-                navigate('/dashboard')
-           }
-           else{
-            navigate('/admin')
-           }
+    try {
+      const res = await axios.post("http://localhost:5000/Auth/login", form);
+      if (res.data.message === "Login successfully") {
+        // ✅ save user in context (and localStorage)
+        login(res.data.user);
+
+        if (res.data.user.role === "user") {
+          navigate("/dashboard");
+        } else {
+          navigate("/admin");
         }
       }
-      catch(err){
-        console.log(err)
-      }
+    } catch (err) {
+      console.log(err);
+      alert("Login failed. Check your credentials.");
+    }
   };
 
   return (
@@ -102,4 +102,3 @@ export function Login({ onLogin }) {
     </div>
   );
 }
-

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext.jsx";
+import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
 import { LandingPage } from "./components/LandingPage.jsx";
 import { Login } from "./components/Login.jsx";
 import { Register } from "./components/Register.jsx";
@@ -12,72 +13,40 @@ import { Reports } from "./components/Reports.jsx";
 import { Settings } from "./components/Settings.jsx";
 import { Admin } from "./components/Admin.jsx";
 import { Navigation } from "./components/Navigation.jsx";
-import { getUser } from "./contexts/AuthContext.jsx";
 
-// Wrapper for conditional navbars
-function Layout({ children, user }) {
+function Layout({ children }) {
+  const { user } = useAuth();
   const location = useLocation();
-  const noNavbarRoutes = ["/login", "/register"]; // ✅ No navbar on these pages
-
+  const noNavbarRoutes = ["/login", "/register"];
   const isNoNavbar = noNavbarRoutes.includes(location.pathname);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      {/* Show Navigation only if user is logged in and not on auth pages */}
       {user && !isNoNavbar && <Navigation />}
-
       {children}
     </div>
   );
 }
 
 function App() {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const storedUser = getUser();
-    if (storedUser) setUser(storedUser);
-  }, []);
+  const { user } = useAuth();
 
   return (
     <ThemeProvider>
       <BrowserRouter>
-        <Layout user={user}>
+        <Layout>
           <Routes>
-            {/* Public routes */}
             <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<Login onLogin={setUser} />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 
-            {/* Protected routes */}
-            <Route
-              path="/dashboard"
-              element={user ? <Dashboard /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/transactions"
-              element={user ? <Transactions /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/budgets"
-              element={user ? <Budgets /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/goals"
-              element={user ? <Goals /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/reports"
-              element={user ? <Reports /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/settings"
-              element={user ? <Settings /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/admin"
-              element={user?.role === "admin" ? <Admin /> : <Navigate to="/dashboard" />}
-            />
+            <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" />} />
+            <Route path="/transactions" element={user ? <Transactions /> : <Navigate to="/login" />} />
+            <Route path="/budgets" element={user ? <Budgets /> : <Navigate to="/login" />} />
+            <Route path="/goals" element={user ? <Goals /> : <Navigate to="/login" />} />
+            <Route path="/reports" element={user ? <Reports /> : <Navigate to="/login" />} />
+            <Route path="/settings" element={user ? <Settings /> : <Navigate to="/login" />} />
+            <Route path="/admin" element={user?.role === "admin" ? <Admin /> : <Navigate to="/dashboard" />} />
           </Routes>
         </Layout>
       </BrowserRouter>
@@ -85,4 +54,10 @@ function App() {
   );
 }
 
-export default App;
+export default function Root() {
+  return (
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  );
+}
